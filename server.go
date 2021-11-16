@@ -188,6 +188,16 @@ func (s Server) handlePut(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err)
 		return
 	}
+	
+	// Fix file permissions for uploaded file
+	err = os.Chmod(targetPath, 0644)
+	if err != nil {
+		logger.WithError(err).WithField("path", targetPath).Error("failed to change file permissions")
+		w.WriteHeader(http.StatusInternalServerError)
+		writeError(w, err)
+		return
+    	}
+	
 	// excplicitly close file to flush, then rename from temp name to actual name in atomic file
 	// operation if on linux or other unix-like OS (windows hosts should look into https://github.com/natefinch/atomic
 	// package for atomic file write operations)
